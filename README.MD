@@ -135,10 +135,12 @@ out_default = forwardNet(x,y,z) # default = -12
 Our net is composed of 2 gates
 * one `forward add gate` or `+` and
 * one `forward multiply gate` or `*`  
+
 From above, only considering `*`, we know that
 * the derivative wrt `q` is `z` and
 * the derivative wrt `z` is `q`
 * thus the gradient being `(y,x)`  
+
 Moreover, looking at `+` we know that
 * the derivative wrt `x` is `1` and
 * the derivative wrt `y` is `1`
