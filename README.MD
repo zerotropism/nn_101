@@ -4,7 +4,7 @@ Digest of the Hacker's guide to neural nets from [Andrej Karpathy blog](https://
 ## Single gate scenario
 
 ### Random Local Search
-We want to increase the output of a single forward multiply gate 
+We want to increase the output of a `single forward multiply gate` defined as 
 ```python
 # forward multiply gate
 def forwardMultiplyGate(x,y):
@@ -78,7 +78,7 @@ def numerical_gradient(x,y):
 reaching an output of `out_new = -5.87`.
 
 ### Analytic Gradient
-Given the single forward multiply gate and the two sole inputs we have, we can state that
+Given the single `forward multiply gate` and the two sole inputs we have, we can state that
 * the derivative wrt `x` is `y` and
 * the derivative wrt `y` is `x`
 thus allowing us to compute the gradient much more efficiently as
@@ -110,7 +110,7 @@ The gradient was computed by forwarding through the gate
 * only once with analytic gradient.
 
 ## Multiple gates scenario
-We now add a `forward add gate` as
+We now add a `forward add gate` defined as
 ```python
 # new add gate
 def forwardAddGate(x,y):
