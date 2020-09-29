@@ -131,5 +131,90 @@ x = -2
 y = 5
 z = -4
 out_default = forwardNet(x,y,z) # default = -12
+```  
+Our net is composed of 2 gates
+* one `forward add gate` or `+` and
+* one `forward multiply gate` or `*`
+From above, only considering `*`, we know that
+* the derivative wrt `q` is `z` and
+* the derivative wrt `z` is `q`
+* thus the gradient being `(y,x)`
+Moreover, looking at `+` we know that
+* the derivative wrt `x` is `1` and
+* the derivative wrt `y` is `1`
+* thus the gradient being `(1,1)`
+
+### Backpropagation
+Is "chain-rolling" the gradients of the entire net to get its final gradient value as, in a 2-gates net
+```python
+# 2-gates net
+def forwardNet(x,y,z):
+    q = forwardAddGate(x,y) # default = 3
+    f = forwardMultiplyGate(q,z) # default = -12
+
+    ## from * gate
+    derivative_f_wrt_z = q # = 3
+    derivative_f_wrt_q = z # = -4
+
+    ## from + gate
+    derivative_q_wrt_x = 1.0
+    derivative_q_wrt_y = 1.0
+
+    ## chain rule
+    derivative_f_wrt_x = derivative_q_wrt_x * derivative_f_wrt_q # = -4
+    derivative_f_wrt_y = derivative_q_wrt_y * derivative_f_wrt_q # = -4
+
+    ## final gradient
+    gradient_f_wrt_xyz = [
+        derivative_f_wrt_x,
+        derivative_f_wrt_y,
+        derivative_f_wrt_z
+    ]
+
+    ## makes inputs converge
+    step = 0.01
+    x = x + step_size * derivative_f_wrt_x
+    y = y + step_size * derivative_f_wrt_y
+    z = z + step_size * derivative_f_wrt_z
+
+    ## updates net
+    q = forwardAddGate(x,y)
+    f = forwardMultiplyGate(q,z)
+
+    return (
+        x,
+        y,
+        z,
+        q,
+        f,
+        gradient_f_wrt_xyz
+    )
 ```
+reaching output of `f = -11.59`, better than default `-12`.  
+
+To be checked with numerical gradient as
+```python
+# numerical gradient on a 2-gates net
+def numerical_gradient_multiple_gates(x,y,z):
+    ### step
+    h = 0.0001
+
+    ### bench values by our net
+    gradient_hat = forwardNet(x,y,z)[-1]
+    hat = forwardNet(x,y,z)[-2]
+
+    ### numerical check
+    x_derivative = (forwardNet(x+h,y,z)[-2] - hat) / h
+    y_derivative = (forwardNet(x,y+h,z)[-2] - hat) / h
+    z_derivative = (forwardNet(x,y,z+h)[-2] - hat) / h
+    check = [
+        x_derivative,
+        y_derivative,
+        z_derivative
+    ]
+
+    ### diagnostic
+    return [round(n) for n in gradient_hat] == [round(n) for n in check]
+```
+returning `TRUE` for `[-4, -4, 3]` as `x,y,z`.
 
