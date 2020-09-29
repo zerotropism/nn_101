@@ -4,7 +4,7 @@ Digest of the Hacker's guide to neural nets from [Andrej Karpathy blog](https://
 ## Single gate scenario
 
 ### Random Local Search
-We want to increase the output of a `single forward multiply gate` defined as 
+We want to increase the output of a single `forward multiply gate` defined as 
 ```python
 # forward multiply gate
 def forwardMultiplyGate(x,y):
