@@ -338,6 +338,52 @@ c.value = c.value + step * c.grad
 x.value = x.value + step * x.grad
 y.value = y.value + step * y.grad
 
-forwardNeuron()
+forwardNeuron() # = .08825
 ```
-The forward pass will return an output value of `0.8808` and once backpropagated it will return `0.8825`, thus showing a convergence towards a value increase.
+The forward pass will return an output value of `0.8808` and once backpropagated it will return `0.8825`, thus showing a convergence towards a value increase.  
+
+To be checked with numerical gradient as
+```python
+# numerical gradient on single neuron
+def numerical_gradient_single_neuron(a,b,c,x,y):
+    # fast forward
+    return 1 / (1 + math.exp(-(a*x+b*y+c)))
+
+# step
+h = 0.0001
+
+# example inputs
+a,b,c,x,y = 1,2,-3,-1,3
+
+# bench values
+hat = numerical_gradient_single_neuron(a,b,c,x,y)
+
+a_grad = (numerical_gradient_single_neuron(a+h,b,c,x,y) - hat) / h
+b_grad = (numerical_gradient_single_neuron(a,b+h,c,x,y) - hat) / h
+c_grad = (numerical_gradient_single_neuron(a,b,c+h,x,y) - hat) / h
+x_grad = (numerical_gradient_single_neuron(a,b,c,x+h,y) - hat) / h
+y_grad = (numerical_gradient_single_neuron(a,b,c,x,y+h) - hat) / h
+```
+with
+```python
+# computed analytically through the single neuron forward pass and backpropagation
+analytic = [
+    a.grad,
+    b.grad,
+    c.grad,
+    x.grad,
+    y.grad,
+]
+
+# computed numerically
+numerical = [
+    a_grad,
+    b_grad,
+    c_grad,
+    x_grad,
+    y_grad
+]
+```
+returning
+* `analytic = [-0.105, 0.315, 0.105, 0.105, 0.21]` and
+* `numerical = [-0.105, 0.3149, 0.105, 0.105, 0.21]`.
