@@ -230,22 +230,21 @@ class Unit:
         self.value = value
         self.grad = grad
 ```  
-
 Then processing the sigmoid function implies
 * one `forward multiply gate` or `*` as seen before although here defined as a class for modularity puposes
 ```python
 class MultiplyGate:
     # forward
-    def forward(self, x, y):
-        # stores x & y units and returns z
+    def forward(self,x,y):
+        # stores x & y units and returns their product z
         self.x = x
         self.y = y
-        self.z = Unit(x.value * y.value, 0.0)
-        return z
-    
+        self.z = Unit(self.x.value * self.y.value, 0.0)
+        return self.z
+
     # backward
     def backward(self):
-        # updates local gradients by chaining z with themselves
+    # updates local gradients by chaining z with themselves
         self.x.grad = self.x.grad + self.y.value * self.z.grad
         self.y.grad = self.y.grad + self.x.value * self.z.grad
 ```
@@ -253,14 +252,16 @@ class MultiplyGate:
 ```python
 class AddGate:
     # forward
-    def forward(self, x, y):
+    def forward(self,x,y):
+        # stores x & y units and returns their sum z
         self.x = x
         self.y = y
-        self.z = Unit(x.value + y.value, 0.0)
-        return z
+        self.z = Unit(self.x.value + self.y.value, 0.0)
+        return self.z
     
     # backward
-    def backward(self, x, y):
+    def backward(self):
+    # updates local gradients by incrementing with z
         self.x.grad = self.x.grad + 1 * self.z.grad
         self.y.grad = self.y.grad + 1 * self.z.grad
 ```
@@ -306,19 +307,13 @@ sigmoid_gate = SigmoidGate()
 Setup the forward pass of the neuron and run it
 ```python
 def forwardNeuron():
-    print("\nNeuron par classes :")
     ax = multiply_gate_0.forward(a,x)
-    print("ax = ",type(ax),ax.value,ax.grad)
     by = multiply_gate_1.forward(b,y)
-    print("by = ",type(by),by.value,by.grad)
 
     axbpy = add_gate_0.forward(ax,by)
-    print("axbpy = ",type(axbpy),axbpy.value,axbpy.grad)
     axpbypc = add_gate_1.forward(axbpy,c)
-    print("axpbypc = ",type(axpbypc),axpbypc.value,axpbypc.grad)
 
     s = sigmoid_gate.forward(axpbypc)
-    print("s = ",type(s),s.value,s.grad)
     return (
         s.value,
         s.grad
