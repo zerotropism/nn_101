@@ -182,3 +182,93 @@ print(
     "\nNumerical check :",
     numerical_gradient_multiple_gates(x,y,z)
     )
+
+# Simple Neuron
+
+class Unit:
+    def __init__(self, value, grad):
+        self.value = value
+        self.grad = grad
+
+class MultiplyGate:
+    # forward
+    def forward(self,x,y):
+        # stores x & y units and returns their product z
+        self.x = x
+        self.y = y
+        self.z = Unit(self.x.value * self.y.value, 0.0)
+        return self.z
+
+    # backward
+    def backward(self):
+    # updates local gradients by chaining z with themselves
+        self.x.grad = self.x.grad + self.y.value * self.z.grad
+        self.y.grad = self.y.grad + self.x.value * self.z.grad
+
+class AddGate:
+    # forward
+    def forward(self,x,y):
+        # stores x & y units and returns their sum z
+        self.x = x
+        self.y = y
+        self.z = Unit(self.x.value + self.y.value, 0.0)
+        return self.z
+    
+    # backward
+    def backward(self):
+    # updates local gradients by incrementing with z
+        self.x.grad = self.x.grad + 1 * self.z.grad
+        self.y.grad = self.y.grad + 1 * self.z.grad
+
+class SigmoidGate:
+    # support expression
+    def sig(self,x):
+        import math
+        return 1 / (1 + math.exp(-x))
+
+    # forward
+    def forward(self,x):
+        # stores unit and returns z
+        self.x = x
+        self.z = Unit(self.sig(self.x.value), 0.0)
+        return self.z
+
+    # backward
+    def backward(self):
+        s = self.sig(self.x.value)
+        self.x.grad = self.x.grad + (s * (1 - s)) * self.z.grad
+
+# units
+a = Unit(1.0,0.0)
+b = Unit(2.0,0.0)
+c = Unit(-3.0,0.0)
+x = Unit(-1.0,0.0)
+y = Unit(3.0,0.0)
+
+# gates
+multiply_gate_0 = MultiplyGate()
+multiply_gate_1 = MultiplyGate()
+add_gate_0 = AddGate()
+add_gate_1 = AddGate()
+sigmoid_gate = SigmoidGate()
+
+def forwardNeuron():
+    print("\nNeuron par classes :")
+    ax = multiply_gate_0.forward(a,x)
+    print("ax = ",type(ax),ax.value,ax.grad)
+    by = multiply_gate_1.forward(b,y)
+    print("by = ",type(by),by.value,by.grad)
+
+    axbpy = add_gate_0.forward(ax,by)
+    print("axbpy = ",type(axbpy),axbpy.value,axbpy.grad)
+    axpbypc = add_gate_1.forward(axbpy,c)
+    print("axpbypc = ",type(axpbypc),axpbypc.value,axpbypc.grad)
+
+    s = sigmoid_gate.forward(axpbypc)
+    print("s = ",type(s),s.value,s.grad)
+    return (
+        s.value,
+        s.grad
+    )
+## run
+forwardNeuron()

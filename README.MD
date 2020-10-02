@@ -220,3 +220,109 @@ def numerical_gradient_multiple_gates(x,y,z):
 ```
 returning `TRUE` for `[-4, -4, 3]` as `x,y,z`.
 
+## Single Neuron
+Let's apply all this to a single 2-dimensional neuron with sigmoid normalizer that we will not over simplify, concatenating multiple gates into higher order ones through classes.
+
+First we need to store the forward pass value and the backpropagated gradient into a unit as
+```python
+class Unit:
+    def __init__(self, value, grad):
+        self.value = value
+        self.grad = grad
+```  
+
+Then processing the sigmoid function implies
+* one `forward multiply gate` or `*` as seen before although here defined as a class for modularity puposes
+```python
+class MultiplyGate:
+    # forward
+    def forward(self, x, y):
+        # stores x & y units and returns z
+        self.x = x
+        self.y = y
+        self.z = Unit(x.value * y.value, 0.0)
+        return z
+    
+    # backward
+    def backward(self):
+        # updates local gradients by chaining z with themselves
+        self.x.grad = self.x.grad + self.y.value * self.z.grad
+        self.y.grad = self.y.grad + self.x.value * self.z.grad
+```
+* then one `forward add gate` or `+` as well
+```python
+class AddGate:
+    # forward
+    def forward(self, x, y):
+        self.x = x
+        self.y = y
+        self.z = Unit(x.value + y.value, 0.0)
+        return z
+    
+    # backward
+    def backward(self, x, y):
+        self.x.grad = self.x.grad + 1 * self.z.grad
+        self.y.grad = self.y.grad + 1 * self.z.grad
+```
+* and one `forward sigmoid gate` or `sig`
+defined as
+```python
+class SigmoidGate:
+    # support declaration
+    import math
+
+    # support expression
+    def sig(self, x):
+        return 1 / (1 + math.exp(-x))
+    
+    # forward
+    def forward(self, x):
+        self.x = x
+        self.z = Unit(self.sig(self.x.value), 0.0)
+        return self.z
+
+    # backward
+    def backward(self):
+        s = self.sig(self.x.value)
+        self.x.grad = self.x.grad + (s * (1 - s)) * self.z.grad
+```  
+
+Instantiate the units and gates to represent our situation
+```python
+# units
+a = Unit(1.0,0.0)
+b = Unit(2.0,0.0)
+c = Unit(-3.0,0.0)
+x = Unit(-1.0,0.0)
+y = Unit(3.0,0.0)
+
+# gates
+multiply_gate_0 = MultiplyGate()
+multiply_gate_1 = MultiplyGate()
+add_gate_0 = AddGate()
+add_gate_1 = AddGate()
+sigmoid_gate = SigmoidGate()
+```
+Setup the forward pass of the neuron and run it
+```python
+def forwardNeuron():
+    print("\nNeuron par classes :")
+    ax = multiply_gate_0.forward(a,x)
+    print("ax = ",type(ax),ax.value,ax.grad)
+    by = multiply_gate_1.forward(b,y)
+    print("by = ",type(by),by.value,by.grad)
+
+    axbpy = add_gate_0.forward(ax,by)
+    print("axbpy = ",type(axbpy),axbpy.value,axbpy.grad)
+    axpbypc = add_gate_1.forward(axbpy,c)
+    print("axpbypc = ",type(axpbypc),axpbypc.value,axpbypc.grad)
+
+    s = sigmoid_gate.forward(axpbypc)
+    print("s = ",type(s),s.value,s.grad)
+    return (
+        s.value,
+        s.grad
+    )
+## run
+forwardNeuron()
+```
