@@ -253,7 +253,6 @@ add_gate_1 = AddGate()
 sigmoid_gate = SigmoidGate()
 
 def forwardNeuron():
-    print("\nNeuron par classes :")
     ax = multiply_gate_0.forward(a,x)
     print("ax = ",type(ax),ax.value,ax.grad)
     by = multiply_gate_1.forward(b,y)
@@ -266,9 +265,26 @@ def forwardNeuron():
 
     s = sigmoid_gate.forward(axpbypc)
     print("s = ",type(s),s.value,s.grad)
-    return (
-        s.value,
-        s.grad
-    )
+    return s
 ## run
+print("\nneuron forward pass :")
+s = forwardNeuron()
+
+# backprop
+s.grad = 1.0
+sigmoid_gate.backward()
+add_gate_1.backward()
+add_gate_0.backward()
+multiply_gate_1.backward()
+multiply_gate_0.backward()
+
+# update values with chained gradients times the step size
+step = 0.01
+a.value = a.value + step * a.grad
+b.value = b.value + step * b.grad
+c.value = c.value + step * c.grad
+x.value = x.value + step * x.grad
+y.value = y.value + step * y.grad
+
+print("\nneuron backward pass :")
 forwardNeuron()

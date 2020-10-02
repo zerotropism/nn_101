@@ -1,5 +1,5 @@
 # Practice neural nets 101
-Digest of the Hacker's guide to neural nets from [Andrej Karpathy blog](https://karpathy.github.io/neuralnets/) consulted on sept 2020.  
+Digest in Python of the Hacker's guide to neural nets from [Andrej Karpathy blog](https://karpathy.github.io/neuralnets/) consulted on sept 2020.  
 
 ## Single gate scenario
 
@@ -288,7 +288,7 @@ class SigmoidGate:
         self.x.grad = self.x.grad + (s * (1 - s)) * self.z.grad
 ```  
 
-Instantiate the units and gates to represent our situation
+Instantiate the units with example values and gates to represent our situation
 ```python
 # units
 a = Unit(1.0,0.0)
@@ -314,10 +314,30 @@ def forwardNeuron():
     axpbypc = add_gate_1.forward(axbpy,c)
 
     s = sigmoid_gate.forward(axpbypc)
-    return (
-        s.value,
-        s.grad
-    )
+    return s
 ## run
+forwardNeuron() # = 0.8808
+```
+* then set the gradient to 1 in order to allow the gradient chain to start
+* and backpropagate as
+```python
+# backpropagation
+s.grad = 1.0
+sigmoid_gate.backward()
+add_gate_1.backward()
+add_gate_0.backward()
+multiply_gate_1.backward()
+multiply_gate_0.backward()
+```
+The units values will be updated with chained gradients times the step size and rerun the forward pass with updated values as
+```python
+step = 0.01
+a.value = a.value + step * a.grad
+b.value = b.value + step * b.grad
+c.value = c.value + step * c.grad
+x.value = x.value + step * x.grad
+y.value = y.value + step * y.grad
+
 forwardNeuron()
 ```
+The forward pass will return an output value of `0.8808` and once backpropagated it will return `0.8825`, thus showing a convergence towards a value increase.
