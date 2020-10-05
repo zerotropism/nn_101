@@ -289,6 +289,7 @@ y.value = y.value + step * y.grad
 print("\nneuron backward pass :")
 forwardNeuron()
 
+# isolate analytic gradients
 analytic = [
     a.grad,
     b.grad,
@@ -312,6 +313,7 @@ a,b,c,x,y = 1,2,-3,-1,3
 # bench values
 hat = numerical_gradient_single_neuron(a,b,c,x,y)
 
+# numerical gradients
 a_grad = (numerical_gradient_single_neuron(a+h,b,c,x,y) - hat) / h
 b_grad = (numerical_gradient_single_neuron(a,b+h,c,x,y) - hat) / h
 c_grad = (numerical_gradient_single_neuron(a,b,c+h,x,y) - hat) / h
@@ -328,3 +330,5 @@ numerical = [
 
 print("\nanalytic =", [round(n,3) for n in analytic])
 print("numerical =", [round(n,3) for n in numerical])
+
+# More on Backpropagation

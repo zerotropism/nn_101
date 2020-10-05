@@ -358,6 +358,7 @@ a,b,c,x,y = 1,2,-3,-1,3
 # bench values
 hat = numerical_gradient_single_neuron(a,b,c,x,y)
 
+# numerical gradients
 a_grad = (numerical_gradient_single_neuron(a+h,b,c,x,y) - hat) / h
 b_grad = (numerical_gradient_single_neuron(a,b+h,c,x,y) - hat) / h
 c_grad = (numerical_gradient_single_neuron(a,b,c+h,x,y) - hat) / h
@@ -386,4 +387,98 @@ numerical = [
 ```
 returning
 * `analytic = [-0.105, 0.315, 0.105, 0.105, 0.21]` and
-* `numerical = [-0.105, 0.3149, 0.105, 0.105, 0.21]`.
+* `numerical = [-0.105, 0.315, 0.105, 0.105, 0.21]` thus confirming the results.
+
+# More on Backpropagation
+Focusing on the sole backpropagation process, let's put our code structure away for a moment and consider the values `a, b, c & x` as well as their gradients `da, db, dc, dx` as integers. The complexity of the examples will go crecendo.  
+
+##### Two numbers example 
+With two numbers, the `*` gate gives
+```python
+# the * gate gives
+x = a * b
+# the gradients computes
+da = b * dx
+db = a * dx
+```
+assuming `dx` is given or `1` by default. Because its local gradient always returns `1.0`, the `+` gate on its end gives
+```python
+x = a + b
+da = 1.0 * dx
+db = 1.0 * dx
+```
+where `1.0` is the local gradient and the `*` operator is the chain rule.  
+
+##### Three numbers example
+With three numbers example nothing changes, the `+` gate gives
+```python
+x = a + b + c
+da = 1.0 * dx
+db = 1.0 * dx
+dc = 1.0 * dx
+```
+and combining the gates yields
+```python
+x = a * b + c
+da = b * dx
+db = a * dx
+dc = 1.0 * dx
+```
+
+##### Compelete 2-dimensional neuron example
+Along this simplification, setting up our neuron, including its sigmoid normalizer sets as
+```python
+# forward
+q = a*x + b*y + c
+f = sig(q)
+
+# backward
+df = 1.0 # by default
+dq = (f * (1-f)) * df
+
+da = x * dq
+dx = a * dq
+dy = b * dq
+db = y * dq
+dc = 1.0 * dq
+```
+
+##### More complex examples
+When complex cases show up, split the expression into more manageable, simpler expression as
+```python
+# the entire expression 
+x = math.pow((a * b + c) * d), 2)
+
+# can be split in 3 simpler ones
+x1 = a * b + c
+x2 = x1 * d
+x = x2 * x2
+
+# allowing easier gradient computations (= backprop equations)
+dx2 = 2 * x2 * dx
+dd = x1 * dx2
+dx1 = d * dx2
+da = b * dx1
+db = a * dx1
+dc = 1.0 * dx1
+```  
+And with a division
+```python
+# the expression
+x = (a + b)/(c + d)
+
+# decomposed
+x1 = a + b
+x2 = c + d
+x3 = 1.0 / x2
+x = x1 * x3
+
+# gradients in reverse order
+dx1 = x3 * dx
+dx3 = x1 * dx
+dx2 = (-1.0 / x2²) * dx3
+da = 1.0 * dx1
+db = 1.0 * dx1
+dc = 1.0 * dx2
+dd = 1.0 * dx2
+```  
