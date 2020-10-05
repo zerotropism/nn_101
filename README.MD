@@ -401,9 +401,11 @@ x = a * b
 da = b * dx
 db = a * dx
 ```
-assuming `dx` is given or `1` by default. Because its local gradient always returns `1.0`, the `+` gate on its end gives
+assuming `dx` is given or equals `1` by default. Because its local gradient always returns `1.0`, the `+` gate on its end gives
 ```python
+# gate
 x = a + b
+# gradients
 da = 1.0 * dx
 db = 1.0 * dx
 ```
@@ -412,14 +414,18 @@ where `1.0` is the local gradient and the `*` operator is the chain rule.
 ##### Three numbers example
 With three numbers example nothing changes, the `+` gate gives
 ```python
+# gate
 x = a + b + c
+# gradients
 da = 1.0 * dx
 db = 1.0 * dx
 dc = 1.0 * dx
 ```
 and combining the gates yields
 ```python
+# gate
 x = a * b + c
+# gradients
 da = b * dx
 db = a * dx
 dc = 1.0 * dx
@@ -449,12 +455,12 @@ When complex cases show up, split the expression into more manageable, simpler e
 # the entire expression 
 x = math.pow((a * b + c) * d), 2)
 
-# can be split in 3 simpler ones
+# can be split in 3 simpler gates
 x1 = a * b + c
 x2 = x1 * d
 x = x2 * x2
 
-# allowing easier gradient computations (= backprop equations)
+# allowing easier gradients computations (= backprop equations)
 dx2 = 2 * x2 * dx
 dd = x1 * dx2
 dx1 = d * dx2
@@ -462,18 +468,18 @@ da = b * dx1
 db = a * dx1
 dc = 1.0 * dx1
 ```  
-And with a division
+A division yields
 ```python
 # the expression
 x = (a + b)/(c + d)
 
-# decomposed
+# decomposed in gates
 x1 = a + b
 x2 = c + d
 x3 = 1.0 / x2
 x = x1 * x3
 
-# gradients in reverse order
+# gradients (always in reverse order for backprop)
 dx1 = x3 * dx
 dx3 = x1 * dx
 dx2 = (-1.0 / x2²) * dx3
