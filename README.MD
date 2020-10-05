@@ -392,7 +392,7 @@ returning
 # More on Backpropagation
 Focusing on the sole backpropagation process, let's put our code structure away for a moment and consider the values `a, b, c & x` as well as their gradients `da, db, dc, dx` as integers. The complexity of the examples will go crecendo.  
 
-##### Two numbers example 
+#### Two numbers example 
 With two numbers, the `*` gate gives
 ```python
 # the * gate gives
@@ -411,7 +411,7 @@ db = 1.0 * dx
 ```
 where `1.0` is the local gradient and the `*` operator is the chain rule.  
 
-##### Three numbers example
+#### Three numbers example
 With three numbers example nothing changes, the `+` gate gives
 ```python
 # gate
@@ -431,7 +431,7 @@ db = a * dx
 dc = 1.0 * dx
 ```
 
-##### Compelete 2-dimensional neuron example
+#### Compelete 2-dimensional neuron example
 Along this simplification, setting up our neuron, including its sigmoid normalizer sets as
 ```python
 # forward
@@ -449,8 +449,8 @@ db = y * dq
 dc = 1.0 * dq
 ```
 
-##### More complex examples
-When complex cases show up, split the expression into more manageable, simpler expression as
+#### More complex examples
+When complex cases show up, split the expression into more manageable, simpler ones. For a multiplication
 ```python
 # the entire expression 
 x = math.pow((a * b + c) * d), 2)
@@ -468,7 +468,7 @@ da = b * dx1
 db = a * dx1
 dc = 1.0 * dx1
 ```  
-A division yields
+For a division
 ```python
 # the expression
 x = (a + b)/(c + d)
