@@ -389,7 +389,7 @@ returning
 * `analytic = [-0.105, 0.315, 0.105, 0.105, 0.21]` and
 * `numerical = [-0.105, 0.315, 0.105, 0.105, 0.21]` thus confirming the results.
 
-# More on Backpropagation
+## More on Backpropagation
 Focusing on the sole backpropagation process, let's put our code structure away for a moment and consider the values `a, b, c & x` as well as their gradients `da, db, dc, dx` as integers. The complexity of the examples will go crecendo.  
 
 #### Two numbers example 
@@ -488,3 +488,32 @@ db = 1.0 * dx1
 dc = 1.0 * dx2
 dd = 1.0 * dx2
 ```  
+
+## Machine Learning
+Forward pass & backward pass mechanisms applied to Machine Learning.
+
+### Binary Classification
+Let's have a `N = 6, D = 2` vectors outputting a `-1` or `+1` label as
+```
+vector -> label
+---------------
+[1.2, 0.7] -> +1
+[-0.3, 0.5] -> -1
+[-3, -1] -> +1
+[0.1, 1.0] -> -1
+[3.0, 1.1] -> -1
+[2.1, -3] -> +1
+```
+The objective is to learn a function that takes a 2-dimensional vector and predicts the label, dropping the sigmoid normalizer for simplification purposes as
+* `x` & `y` the inputs (2D vectors),
+* `a, b, c` the parameters
+and we then proceed to a `Stochastic Gradient Descent` as training scheme consisting of
+* random input values
+* compute outputs (predictions)
+* compare to provided labels
+* tug on circuit in correct direction
+* backpropagate
+* compute with updated values
+* iterate
+
+### Support Vector Machine
