@@ -506,7 +506,7 @@ vector -> label
 ```
 The objective is to learn a function that takes a 2-dimensional vector and predicts the label, dropping the sigmoid normalizer for simplification purposes as
 * `x` & `y` the inputs (2D vectors),
-* `a, b, c` the parameters
+* `a, b, c` the parameters  
 and we then proceed to a `Stochastic Gradient Descent` as training scheme consisting of
 * random input values
 * compute outputs (predictions)
