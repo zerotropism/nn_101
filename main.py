@@ -278,7 +278,7 @@ add_gate_0.backward()
 multiply_gate_1.backward()
 multiply_gate_0.backward()
 
-# update values with chained gradients times the step size
+## update values with chained gradients times the step size
 step = 0.01
 a.value = a.value + step * a.grad
 b.value = b.value + step * b.grad
@@ -289,7 +289,7 @@ y.value = y.value + step * y.grad
 print("\nneuron backward pass :")
 forwardNeuron()
 
-# isolate analytic gradients
+## isolate analytic gradients
 analytic = [
     a.grad,
     b.grad,
@@ -298,22 +298,22 @@ analytic = [
     y.grad,
 ]
 
-# numerical gradient on single neuron
+## numerical gradient on single neuron
 def numerical_gradient_single_neuron(a,b,c,x,y):
     # fast forward
     import math
     return 1 / (1 + math.exp(-(a*x+b*y+c)))
 
-# step
+## step
 h = 0.0001
 
-# example inputs
+## example inputs
 a,b,c,x,y = 1,2,-3,-1,3
 
-# bench values
+## bench values
 hat = numerical_gradient_single_neuron(a,b,c,x,y)
 
-# numerical gradients
+## numerical gradients
 a_grad = (numerical_gradient_single_neuron(a+h,b,c,x,y) - hat) / h
 b_grad = (numerical_gradient_single_neuron(a,b+h,c,x,y) - hat) / h
 c_grad = (numerical_gradient_single_neuron(a,b,c+h,x,y) - hat) / h
@@ -331,4 +331,153 @@ numerical = [
 print("\nanalytic =", [round(n,3) for n in analytic])
 print("numerical =", [round(n,3) for n in numerical])
 
-# More on Backpropagation
+# # More on Backpropagation
+# ## multiplication
+# ### the entire expression
+# import math
+# x = math.pow((a * b + c) * d, 2)
+
+# ### can be split in 3 simpler gates
+# x1 = a * b + c
+# x2 = x1 * d
+# x = x2 * x2
+
+# ### allowing easier gradients computations (= backprop equations)
+# dx2 = 2 * x2 * dx
+# dd = x1 * dx2
+# dx1 = d * dx2
+# da = b * dx1
+# db = a * dx1
+# dc = 1.0 * dx1
+
+# ## division
+# ### the expression
+# x = (a + b)/(c + d)
+
+# ### decomposed in gates
+# x1 = a + b
+# x2 = c + d
+# x3 = 1.0 / x2
+# x = x1 * x3
+
+# ### gradients (always in reverse order for backprop)
+# dx1 = x3 * dx
+# dx3 = x1 * dx
+# dx2 = (-1.0 / x2**2) * dx3
+# da = 1.0 * dx1
+# db = 1.0 * dx1
+# dc = 1.0 * dx2
+# dd = 1.0 * dx2
+
+# SVM
+## circuit class
+class Circuit:
+    ## gates declarations
+    multiply_gate_0 = MultiplyGate()
+    multiply_gate_1 = MultiplyGate()
+    add_gate_0 = AddGate()
+    add_gate_1 = AddGate()
+
+    # forward process
+    def forward(self,x,y,a,b,c):
+        ax = multiply_gate_0.forward(a,x)
+        print("ax = ",type(ax),ax.value,ax.grad)
+        by = multiply_gate_1.forward(b,y)
+        print("by = ",type(by),by.value,by.grad)
+        axbpy = add_gate_0.forward(ax,by)
+        print("axbpy = ",type(axbpy),axbpy.value,axbpy.grad)
+        axpbypc = add_gate_1.forward(axbpy,c)
+        print("axpbypc = ",type(axpbypc),axpbypc.value,axpbypc.grad)
+        return axpbypc
+
+    # backward process
+    def backward(self,gradient_top):
+        axpbypc.grad = gradient_top
+        add_gate_1.backward()           # sets gradient in axpby and c
+        add_gate_0.backward()           # sets gradient in ax and by
+        multiply_gate_1.backward()      # sets gradient in b and y
+        multiply_gate_0.backward()      # sets gradient in a and x
+
+## svm class
+class SVM:
+    a = Unit(1.0, 0.0)
+    b = Unit(-2.0, 0.0)
+    c = Unit(-1.0, 0.0)
+    circuit = Circuit()
+
+    def forward(self,x,y):
+        self.unit_out = self.circuit.forward(x,y,self.a,self.b,self.c)
+        return self.unit_out
+    
+    def backward(self,label):           # label is +1 or -1
+        # reset grad values to start chaining
+        self.a.grad = 0.0
+        self.b.grad = 0.0
+        self.c.grad = 0.0
+        self.pull = 0.0
+        if label == 1 and self.unit_out.value < 1:
+            pull = 1
+        elif label == -1 and self.unit_out.value > -1:
+            pull = -1
+        self.circuit.backward(pull)
+        self.a.grad = self.a.grad - self.a.value
+        self.b.grad = self.b.grad - self.b.value
+
+    def parameterUpdate(self):
+        step = 0.01
+        self.a.value = self.a.value + step + self.a.grad
+        self.b.value = self.b.value + step + self.b.grad
+        self.c.value = self.b.value + step + self.c.grad
+
+    def learnFrom(self,x,y,label):
+        self.forward(x,y)
+        self.backward(label)
+        self.parameterUpdate()
+
+### compute SGD
+data = []
+data.extend(
+    [[1.2, 0.7]]
+    + [[-0.3, -0.5]]
+    + [[3.0, 0.1]]
+    + [[-0.1, -1.0]]
+    + [[-1.0, 1.1]]
+    + [[2.1, -3.0]]
+    )
+labels = [] 
+labels.extend(
+    [1]
+    + [-1]
+    + [1]
+    + [-1]
+    + [-1]
+    + [1]
+    )
+svm = SVM()
+
+#### assess classification accuracy
+def evalTrainingAccuracy():
+    num_correct = 0
+    for i in range(len(data)):
+        x = Unit(data[i][0], 0.0)
+        y = Unit(data[i][1], 0.0)
+        true_label = labels[i]
+        predicted_label = 1 if svm.forward(x,y).value > 0 else -1
+        if predicted_label == true_label:
+            num_correct += 1
+    return num_correct / len(data)
+
+import math
+import random
+
+#### learning loop
+for k in range(400):
+    # pick random data point
+    i = math.floor(random.random() * len(data))
+    x = Unit(data[i][0], 0.0)
+    y = Unit(data[i][1], 0.0)
+    label = labels[i]
+    svm.learnFrom(x,y,label)
+    if k % 25 == 0:
+        print("training accuracy at iteration n°", k, ":", evalTrainingAccuracy())
+    

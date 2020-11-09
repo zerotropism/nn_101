@@ -517,3 +517,72 @@ and we then proceed to a `Stochastic Gradient Descent` as training scheme consis
 * iterate
 
 ### Support Vector Machine
+Based on the approach from first chapter, the complete circuit class should resemble this
+```python
+## circuit class
+class Circuit:
+    ## gates declarations
+    multiply_gate_0 = MultiplyGate()
+    multiply_gate_1 = MultiplyGate()
+    add_gate_0 = AddGate()
+    add_gate_1 = AddGate()
+
+    # forward process
+    def forward(self,x,y,a,b,c):
+        ax = multiply_gate_0.forward(a,x)
+        print("ax = ",type(ax),ax.value,ax.grad)
+        by = multiply_gate_1.forward(b,y)
+        print("by = ",type(by),by.value,by.grad)
+        axbpy = add_gate_0.forward(ax,by)
+        print("axbpy = ",type(axbpy),axbpy.value,axbpy.grad)
+        axpbypc = add_gate_1.forward(axbpy,c)
+        print("axpbypc = ",type(axpbypc),axpbypc.value,axpbypc.grad)
+        return axpbypc
+
+    # backward process
+    def backward(self,gradient_top):
+        axpbypc.grad = gradient_top
+        add_gate_1.backward()           # sets gradient in axpby and c
+        add_gate_0.backward()           # sets gradient in ax and by
+        multiply_gate_1.backward()      # sets gradient in b and y
+        multiply_gate_0.backward()      # sets gradient in a and x
+```
+which simply computes `a*x + b*y + c` as well as the gradient.  
+Now a SVM class should resemble
+```python
+class SVM:
+    a = Unit(1.0, 0.0)
+    b = Unit(-2.0, 0.0)
+    c = Unit(-1.0, 0.0)
+    circuit = Circuit()
+
+    def forward(self,x,y):
+        self.unit_out = self.circuit.forward(x,y,self.a,self.b,self.c)
+        return self.unit_out
+    
+    def backward(self,label):           # label is +1 or -1
+        # reset grad values to start chaining
+        self.a.grad = 0.0
+        self.b.grad = 0.0
+        self.c.grad = 0.0
+        self.pull = 0.0
+        if label == 1 and self.unit_out.value < 1:
+            pull = 1
+        elif label == -1 and self.unit_out.value > -1:
+            pull = -1
+        self.circuit.backward(pull)
+        self.a.grad = self.a.grad - self.a.value
+        self.b.grad = self.b.grad - self.b.value
+
+    def parameterUpdate(self):
+        step = 0.01
+        self.a.value = self.a.value + step + self.a.grad
+        self.b.value = self.b.value + step + self.b.grad
+        self.c.value = self.b.value + step + self.c.grad
+
+    def learnFrom(self,x,y,label):
+        self.forward(x,y)
+        self.backward(label)
+        self.parameterUpdate()
+```
+Which we will train with stochastic gradient descent
