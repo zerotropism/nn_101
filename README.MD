@@ -521,7 +521,7 @@ Based on the approach from first chapter, the complete circuit class should rese
 ```python
 ## circuit class
 class Circuit:
-    ## gates declarations
+    # gates declarations
     multiply_gate_0 = MultiplyGate()
     multiply_gate_1 = MultiplyGate()
     add_gate_0 = AddGate()
@@ -529,32 +529,30 @@ class Circuit:
 
     # forward process
     def forward(self,x,y,a,b,c):
-        ax = multiply_gate_0.forward(a,x)
-        print("ax = ",type(ax),ax.value,ax.grad)
-        by = multiply_gate_1.forward(b,y)
-        print("by = ",type(by),by.value,by.grad)
-        axbpy = add_gate_0.forward(ax,by)
-        print("axbpy = ",type(axbpy),axbpy.value,axbpy.grad)
-        axpbypc = add_gate_1.forward(axbpy,c)
-        print("axpbypc = ",type(axpbypc),axpbypc.value,axpbypc.grad)
-        return axpbypc
+        self.ax = multiply_gate_0.forward(a,x)
+        self.by = multiply_gate_1.forward(b,y)
+        self.axbpy = add_gate_0.forward(self.ax,self.by)
+        self.axpbypc = add_gate_1.forward(self.axbpy,c)
+        return self.axpbypc
 
     # backward process
     def backward(self,gradient_top):
-        axpbypc.grad = gradient_top
+        self.axpbypc.grad = gradient_top
         add_gate_1.backward()           # sets gradient in axpby and c
         add_gate_0.backward()           # sets gradient in ax and by
         multiply_gate_1.backward()      # sets gradient in b and y
         multiply_gate_0.backward()      # sets gradient in a and x
 ```
 which simply computes `a*x + b*y + c` as well as the gradient.  
-Now a SVM class should resemble
+
+Now a SVM class should resemble the following
 ```python
 class SVM:
     a = Unit(1.0, 0.0)
     b = Unit(-2.0, 0.0)
     c = Unit(-1.0, 0.0)
     circuit = Circuit()
+    unit_out = Unit(0 ,0)
 
     def forward(self,x,y):
         self.unit_out = self.circuit.forward(x,y,self.a,self.b,self.c)
@@ -567,10 +565,10 @@ class SVM:
         self.c.grad = 0.0
         self.pull = 0.0
         if label == 1 and self.unit_out.value < 1:
-            pull = 1
+            self.pull = 1
         elif label == -1 and self.unit_out.value > -1:
-            pull = -1
-        self.circuit.backward(pull)
+            self.pull = -1
+        self.circuit.backward(self.pull)
         self.a.grad = self.a.grad - self.a.value
         self.b.grad = self.b.grad - self.b.value
 
@@ -585,4 +583,52 @@ class SVM:
         self.backward(label)
         self.parameterUpdate()
 ```
-Which we will train with stochastic gradient descent
+Which we will train with stochastic gradient descent as
+```python
+### compute SGD
+data = []
+data.extend(
+    [[1.2, 0.7]]
+    + [[-0.3, -0.5]]
+    + [[3.0, 0.1]]
+    + [[-0.1, -1.0]]
+    + [[-1.0, 1.1]]
+    + [[2.1, -3.0]]
+    )
+labels = [] 
+labels.extend(
+    [1]
+    + [-1]
+    + [1]
+    + [-1]
+    + [-1]
+    + [1]
+    )
+svm = SVM()
+
+#### assess classification accuracy
+def evalTrainingAccuracy():
+    num_correct = 0
+    for i in range(len(data)):
+        x = Unit(data[i][0], 0.0)
+        y = Unit(data[i][1], 0.0)
+        true_label = labels[i]
+        predicted_label = 1 if svm.forward(x,y).value > 0 else -1
+        if predicted_label == true_label:
+            num_correct += 1
+    return num_correct / len(data)
+
+import math
+import random
+
+#### learning loop
+for k in range(400):
+    # pick random data point
+    i = math.floor(random.random() * len(data))
+    x = Unit(data[i][0], 0.0)
+    y = Unit(data[i][1], 0.0)
+    label = labels[i]
+    svm.learnFrom(x,y,label)
+    if k % 25 == 0:
+        print("training accuracy at iteration n°", k, ":", evalTrainingAccuracy())
+```

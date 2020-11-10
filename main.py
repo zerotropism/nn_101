@@ -372,7 +372,7 @@ print("numerical =", [round(n,3) for n in numerical])
 # SVM
 ## circuit class
 class Circuit:
-    ## gates declarations
+    # gates declarations
     multiply_gate_0 = MultiplyGate()
     multiply_gate_1 = MultiplyGate()
     add_gate_0 = AddGate()
@@ -380,19 +380,15 @@ class Circuit:
 
     # forward process
     def forward(self,x,y,a,b,c):
-        ax = multiply_gate_0.forward(a,x)
-        print("ax = ",type(ax),ax.value,ax.grad)
-        by = multiply_gate_1.forward(b,y)
-        print("by = ",type(by),by.value,by.grad)
-        axbpy = add_gate_0.forward(ax,by)
-        print("axbpy = ",type(axbpy),axbpy.value,axbpy.grad)
-        axpbypc = add_gate_1.forward(axbpy,c)
-        print("axpbypc = ",type(axpbypc),axpbypc.value,axpbypc.grad)
-        return axpbypc
+        self.ax = multiply_gate_0.forward(a,x)
+        self.by = multiply_gate_1.forward(b,y)
+        self.axbpy = add_gate_0.forward(self.ax,self.by)
+        self.axpbypc = add_gate_1.forward(self.axbpy,c)
+        return self.axpbypc
 
     # backward process
     def backward(self,gradient_top):
-        axpbypc.grad = gradient_top
+        self.axpbypc.grad = gradient_top
         add_gate_1.backward()           # sets gradient in axpby and c
         add_gate_0.backward()           # sets gradient in ax and by
         multiply_gate_1.backward()      # sets gradient in b and y
@@ -404,6 +400,7 @@ class SVM:
     b = Unit(-2.0, 0.0)
     c = Unit(-1.0, 0.0)
     circuit = Circuit()
+    unit_out = Unit(0 ,0)
 
     def forward(self,x,y):
         self.unit_out = self.circuit.forward(x,y,self.a,self.b,self.c)
@@ -416,10 +413,10 @@ class SVM:
         self.c.grad = 0.0
         self.pull = 0.0
         if label == 1 and self.unit_out.value < 1:
-            pull = 1
+            self.pull = 1
         elif label == -1 and self.unit_out.value > -1:
-            pull = -1
-        self.circuit.backward(pull)
+            self.pull = -1
+        self.circuit.backward(self.pull)
         self.a.grad = self.a.grad - self.a.value
         self.b.grad = self.b.grad - self.b.value
 
@@ -433,6 +430,7 @@ class SVM:
         self.forward(x,y)
         self.backward(label)
         self.parameterUpdate()
+
 
 ### compute SGD
 data = []
@@ -480,4 +478,3 @@ for k in range(400):
     svm.learnFrom(x,y,label)
     if k % 25 == 0:
         print("training accuracy at iteration n°", k, ":", evalTrainingAccuracy())
-    
