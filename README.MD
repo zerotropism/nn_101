@@ -632,3 +632,22 @@ for k in range(400):
     if k % 25 == 0:
         print("training accuracy at iteration n°", k, ":", evalTrainingAccuracy())
 ```
+Which outputs
+```
+training accuracy at iteration n° 0 : 0.5
+training accuracy at iteration n° 25 : 0.8333333333333334
+training accuracy at iteration n° 50 : 0.6666666666666666
+training accuracy at iteration n° 75 : 0.5
+training accuracy at iteration n° 100 : 0.5
+training accuracy at iteration n° 125 : 0.6666666666666666
+training accuracy at iteration n° 150 : 0.6666666666666666
+training accuracy at iteration n° 175 : 0.6666666666666666
+training accuracy at iteration n° 200 : 0.6666666666666666
+training accuracy at iteration n° 225 : 0.5
+training accuracy at iteration n° 250 : 0.5
+training accuracy at iteration n° 275 : 0.6666666666666666
+training accuracy at iteration n° 300 : 0.8333333333333334
+training accuracy at iteration n° 325 : 0.6666666666666666
+training accuracy at iteration n° 350 : 0.8333333333333334
+training accuracy at iteration n° 375 : 0.6666666666666666
+```
