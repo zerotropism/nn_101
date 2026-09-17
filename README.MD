@@ -1,3 +1,7 @@
+> Archived in September 2026. Digest of *Hacker's guide to Neural Networks* (2020), kept for reference. Not maintained, dependencies not updated.
+
+> For a maintained walk through the same ideas, see [micrograd](https://github.com/zerotropism/micrograd).
+
 # Practice neural nets 101
 Digest in Python of the Hacker's guide to neural nets from [Andrej Karpathy blog](https://karpathy.github.io/neuralnets/) consulted on sept 2020.  
 
